@@ -22,29 +22,17 @@ class LoginViewModel: ViewModel() {
         logando = true
         auth.signInWithEmailAndPassword(email, senha)
             .addOnCompleteListener { task ->
-                if (task.isSuccessful){ //login ok
                     loginObserver(true)
                 }else {
                     loginObserver(false)
                     Log.i("###", task.exception?.message.toString())
                 }
-
                 logando = false
             }
     }
 
     fun cadastrar(email: String, senha: String){
-        logando = true
         auth.createUserWithEmailAndPassword(email, senha)
             .addOnCompleteListener { task ->
-                if (task.isSuccessful){ //login ok
-                    loginObserver(true)
-                }else
-                    loginObserver(false)
-
-                logando = false
             }
     }
-
-
-}
