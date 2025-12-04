@@ -9,6 +9,7 @@ lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2025.11.00"
 
+
 firePlugin = "4.4.4"		#verificar última versão
 firebaseBom = "34.5.0"		#verificar última versão
 
