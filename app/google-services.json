@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "573236753704",
+    "project_id": "trabalhofinaln2",
+    "storage_bucket": "trabalhofinaln2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:573236753704:android:dab862d39032794d298c1d",
+        "android_client_info": {
+          "package_name": "com.example.trabalhofinaln2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrCVcudGJUnwbeLpg5FIjs9qtUilhljRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
