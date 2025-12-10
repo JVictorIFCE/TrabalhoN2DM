@@ -8,19 +8,30 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,34 +39,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.SemanticsPropertyReceiver
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.trabalhofinaln2.ui.theme.TrabalhoFinalN2Theme
+import androidx.compose.ui.unit.sp
 import com.example.trabalhofinaln2.ui.theme.TrabalhoFinalN2Theme
 
-class LoginActivity: ComponentActivity() {
+class LoginActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        val loginViewModel by viewModels<LoginViewModel> ()
+        val loginViewModel by viewModels<LoginViewModel>()
 
         loginViewModel.setObserver { sucesso ->
-            if (sucesso == true){
+            if (sucesso) {
                 startMainActivity()
-            }else{
+            } else {
                 Log.i("###", "Erro!")
             }
         }
 
         enableEdgeToEdge()
         setContent {
-            TrabalhoFinalN2Theme{
+            TrabalhoFinalN2Theme {
                 AppLogin(
+                    erro = loginViewModel.erro,
+                    onErroConsumido = {
+                        loginViewModel.limparErro()
+                    },
                     showProgressBar = loginViewModel.logando,
                     onClickLogin = { email, senha ->
                         loginViewModel.logar(email, senha)
@@ -69,7 +83,7 @@ class LoginActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
     }
 
-    fun startMainActivity(){
+    fun startMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK + Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(intent)
@@ -78,7 +92,7 @@ class LoginActivity: ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun LoginPreview(){
+fun LoginPreview() {
     TrabalhoFinalN2Theme {
         AppLogin()
     }
@@ -88,41 +102,114 @@ fun LoginPreview(){
 
 @Composable
 fun AppLogin(
+    erro: String? = null,
+    onErroConsumido: () -> Unit = {},
     showProgressBar: Boolean = false,
-    onClickLogin:(String, String) -> Unit = {_,_->},
-    onCreateLogin:(String, String) -> Unit = {_,_->}
-){
+    onClickLogin: (String, String) -> Unit = { _, _ -> },
+    onCreateLogin: (String, String) -> Unit = { _, _ -> }
+) {
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
+    var senhaVisivel by remember { mutableStateOf(false) }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Box (
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+
+    LaunchedEffect(erro) {
+        erro?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+            onErroConsumido()
+        }
+    }
+    Scaffold(
+        modifier = Modifier.fillMaxSize()
+            .imePadding(),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
+
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+
+
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .background(
+                        color = Color(0xFF6EBDFA),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .border(
+                        1.dp, Color.Black,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(16.dp)
+
             ) {
+                Text("Todo list")
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = {Text("email")},
+                    placeholder = { Text("email") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
 
-                )
+                    )
+
+
+
                 OutlinedTextField(
                     value = senha,
                     onValueChange = { senha = it },
-                    placeholder = {Text("senha")},
-                    //visualTransformation = PasswordVisualTransformation()
+                    placeholder = { Text("Senha") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = if (senhaVisivel) KeyboardType.Text else KeyboardType.Password
+                    ),
+                    visualTransformation = if (senhaVisivel)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { senhaVisivel = !senhaVisivel }) {
+                            Icon(
+                                imageVector = if (senhaVisivel)
+                                    Icons.Default.Visibility
+                                else
+                                    Icons.Default.VisibilityOff,
+                                contentDescription = if (senhaVisivel)
+                                    "Ocultar senha"
+                                else
+                                    "Mostrar senha"
+                            )
+                        }
+                    }
                 )
-                TextButton(
+                if (senha.length < 6 && senha.isNotEmpty()) {
+                    Text(
+                        text = "A senha deve ter pelo menos 6 caracteres",
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        color = Color.Red
+                    )
+                }
+
+                Button(
                     onClick = {
                         onCreateLogin(email, senha)
                     }
-                ) {Text("Cadastrar") }
+                ) {
+                    Text("Cadastrar")
+                }
                 Button(
                     onClick = {
                         onClickLogin(email, senha)
@@ -130,9 +217,11 @@ fun AppLogin(
                 ) { Text("Logar") }
             }
             //marlos.maur@gmail.com
-            if (showProgressBar){
-                Box(modifier = Modifier
-                    .fillMaxSize().background(Color.White),
+            if (showProgressBar) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -141,8 +230,3 @@ fun AppLogin(
         }
     }
 }
-
-
-
-
-

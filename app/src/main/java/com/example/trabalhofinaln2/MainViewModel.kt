@@ -9,22 +9,22 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.EventListener
 
 
-class MainViewModel: ViewModel() {
+class MainViewModel : ViewModel() {
 
     val db = FirebaseFirestore.getInstance()
     val listTask = mutableStateListOf<Task>()
 
     var query = db.collection("nothing")
 
-    fun connect(){
+    fun connect() {
         query.addSnapshotListener(observador)
     }
 
-    fun updateQuery(userId: String){
+    fun updateQuery(userId: String) {
         query = db.collection("usuarios").document(userId).collection("tarefas")
     }
 
-    val observador = EventListener<QuerySnapshot?>{ event, error ->
+    val observador = EventListener<QuerySnapshot?> { event, error ->
 
         //se houver erro na leitura IGNORE
         if (error != null) return@EventListener
@@ -35,43 +35,56 @@ class MainViewModel: ViewModel() {
 
             Log.i("###", "L: $tarefa")
 
-            when(change.type){
-                DocumentChange.Type.ADDED ->{
+            when (change.type) {
+                DocumentChange.Type.ADDED -> {
                     listTask.add(tarefa)
                 }
-                DocumentChange.Type.MODIFIED ->{
+
+                DocumentChange.Type.MODIFIED -> {
                     listTask.set(change.newIndex, tarefa)
                 }
-                DocumentChange.Type.REMOVED ->{
+
+                DocumentChange.Type.REMOVED -> {
                     listTask.removeAt(change.oldIndex)
                 }
             }
         }
     }
 
-    fun del(tarefa: Task){
+    fun del(tarefa: Task) {
         query.document(tarefa.id)
             .delete()
             .addOnCompleteListener { task ->  //opcional
-                if (task.isSuccessful){
+                if (task.isSuccessful) {
                     Log.i("###", "documento deletado!")
-                }else{
+                } else {
                     Log.e("###", "erro", task.exception)
                 }
             }
     }
 
-    fun add(texto: String){
+    fun add(texto: String) {
         val refDoc = query.document()
         val tarefa = Task(refDoc.id, texto)
 
-        //salvar no banco
         refDoc.set(tarefa).addOnCompleteListener { task ->
-            if (task.isSuccessful){
+            if (task.isSuccessful) {
                 Log.i("###", "documento salvo!")
-            }else{
+            } else {
                 Log.e("###", "erro", task.exception)
             }
         }
+    }
+
+    fun status(tarefa: Task) {
+        query.document(tarefa.id)
+            .update("checked", !tarefa.checked)
+            .addOnCompleteListener { task -> //opcional
+                if (task.isSuccessful) {
+                    Log.i("###", "documento atualizado!")
+                } else {
+                    Log.e("###", "erro", task.exception)
+                }
+            }
     }
 }
