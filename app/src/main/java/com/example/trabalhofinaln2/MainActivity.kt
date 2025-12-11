@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -115,6 +116,10 @@ fun App(
     clickStatus: (Task) -> Unit = {},
     tarefas: List<Task> = emptyList()
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var taskToDelete by remember { mutableStateOf<Task?>(null) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     var texto by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -133,7 +138,7 @@ fun App(
                 },
                 actions = {
                     IconButton(
-                        onClick = { FirebaseAuth.getInstance().signOut() }
+                        onClick = { showLogoutDialog = true }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
@@ -164,12 +169,14 @@ fun App(
                     value = texto,
                     onValueChange = { texto = it },
                     label = { Text("Nova tarefa") },
+                    modifier = Modifier.weight(1f),
                     trailingIcon = {
                         IconButton(onClick = { texto = "" }) {
                             Icon(imageVector = Icons.Default.Clear, contentDescription = "Limpar")
                         }
                     }
                 )
+                Spacer(modifier = Modifier.width(6.dp))
 
 
                 // Botão adicionar
@@ -196,10 +203,8 @@ fun App(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Lista de lembretes
-            LazyColumn(
-
-            ) {
-                item() {
+            LazyColumn {
+                item {
                     if (pendentes.isNotEmpty()) {
                         Text("Tarefas pendentes")
                     } else {
@@ -228,7 +233,10 @@ fun App(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = "Excluir",
                                         modifier = Modifier
-                                            .clickable { clickDel(pendente) }
+                                            .clickable {
+                                                taskToDelete = pendente
+                                                showDeleteDialog = true
+                                            }
                                             .padding(start = 8.dp)
                                     )
                                     Checkbox(
@@ -275,7 +283,10 @@ fun App(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = "Excluir",
                                         modifier = Modifier
-                                            .clickable { clickDel(concluida) }
+                                            .clickable {
+                                                taskToDelete = concluida
+                                                showDeleteDialog = true
+                                            }
                                             .padding(start = 8.dp)
                                     )
                                     Checkbox(
@@ -295,6 +306,74 @@ fun App(
 
         }
     }
+    if (showDeleteDialog && taskToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                taskToDelete = null
+            },
+            title = {
+                Text("Excluir tarefa")
+            },
+            text = {
+                Text("Tem certeza que deseja excluir esta tarefa?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        clickDel(taskToDelete!!)
+                        showDeleteDialog = false
+                        taskToDelete = null
+                    }
+                ) {
+                    Text("Excluir")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        taskToDelete = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showLogoutDialog = false
+            },
+            title = {
+                Text("Sair da conta")
+            },
+            text = {
+                Text("Deseja realmente sair?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        FirebaseAuth.getInstance().signOut()
+                        showLogoutDialog = false
+                    }
+                ) {
+                    Text("Sair")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
 }
 
 

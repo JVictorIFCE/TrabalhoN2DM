@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -159,16 +160,19 @@ fun AppLogin(
                 Text("Todo list")
 
                 OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(0.8f),
                     value = email,
                     onValueChange = { email = it },
                     placeholder = { Text("email") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-
+                    singleLine = true,
+                    maxLines = 1
                     )
 
 
 
                 OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(0.8f),
                     value = senha,
                     onValueChange = { senha = it },
                     placeholder = { Text("Senha") },
@@ -192,7 +196,9 @@ fun AppLogin(
                                     "Mostrar senha"
                             )
                         }
-                    }
+                    },
+                    singleLine = true,
+                    maxLines = 1
                 )
                 if (senha.length < 6 && senha.isNotEmpty()) {
                     Text(
